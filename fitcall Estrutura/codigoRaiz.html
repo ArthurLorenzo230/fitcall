@@ -2,12 +2,46 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function HomePage() {
   const [date, setDate] = useState(new Date());
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [isRegister, setIsRegister] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [error, setError] = useState("");
+
+  const handleAuth = () => {
+    if (isRegister) {
+      if (!nome || !email || !senha) {
+        setError("Preencha todos os campos.");
+        return;
+      }
+      setUserName(nome);
+      setShowAuth(false);
+      setError("");
+    } else {
+      setError("Email não cadastrado. Cadastre-se e comece sua jornada fitness!");
+    }
+  };
+
+  const trainers = [
+    { nome: "Carlos FitPower", esporte: "Musculação", estrelas: 4.8, regiao: "Vila Mariana" },
+    { nome: "Larissa ZenFlow", esporte: "Yoga", estrelas: 4.9, regiao: "Pinheiros" },
+    { nome: "João VibeAlta", esporte: "Funcional", estrelas: 4.7, regiao: "Mooca" },
+    { nome: "Bruna Ativa", esporte: "Vôlei", estrelas: 4.6, regiao: "Praia do Gonzaga" },
+    { nome: "Diego DunkMaster", esporte: "Basquete", estrelas: 5.0, regiao: "Parque Ibirapuera" },
+  ];
+
+  const filteredTrainers = userName ? trainers.filter(t => t.nome.toLowerCase().includes(userName.toLowerCase())) : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-blue-100 p-6">
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-100 p-6 relative">
+      {/* Cabeçalho */}
       <header className="text-center mb-10">
         <div className="flex justify-center items-center gap-2 mb-4">
           <div className="bg-blue-600 text-white font-bold text-2xl w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
@@ -16,24 +50,155 @@ export default function HomePage() {
           <h1 className="text-5xl font-extrabold text-blue-700">FitCall</h1>
         </div>
         <p className="text-lg text-gray-700 max-w-xl mx-auto">
-          Conecte-se com personal trainers próximos de você e agende treinos personalizados em locais ideais, como quadras, parques ou até sua casa.
+          Conecte-se com personal trainers e agende treinos personalizados em locais ideais.
         </p>
       </header>
 
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="rounded-2xl shadow-xl border border-blue-200 bg-white">
-          <CardContent className="p-6">
-            <h2 className="text-2xl font-semibold text-blue-600 mb-4">Encontre um Personal Trainer</h2>
-            <p className="text-gray-700 mb-4">Escolha sua modalidade favorita, veja os perfis dos profissionais e marque onde quiser.</p>
-            <Button className="bg-blue-600 text-white hover:bg-blue-700">Procurar Trainers</Button>
+      {/* Bem-vindo ou botão de login */}
+      <div className="absolute top-6 right-6">
+        {userName ? (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="bg-white px-4 py-2 rounded-md shadow text-blue-600 font-semibold"
+          >
+            Bem-vindo, {userName}!
+          </motion.div>
+        ) : (
+          <button onClick={() => setShowAuth(true)} className="text-blue-600 hover:underline">
+            Entrar / Cadastrar
+          </button>
+        )}
+      </div>
+
+      {/* Modal de Login / Cadastro */}
+      {showAuth && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl space-y-6"
+          >
+            <h2 className="text-2xl font-semibold text-blue-700 text-center">
+              {isRegister ? "Criar Conta" : "Entrar na Conta"}
+            </h2>
+
+            {error && (
+              <p className="text-red-500 text-sm text-center -mt-4">{error}</p>
+            )}
+
+            <div className="space-y-4">
+              {isRegister && (
+                <input
+                  type="text"
+                  placeholder="Seu nome"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              )}
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="password"
+                placeholder="Senha"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <button
+              onClick={handleAuth}
+              className="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white py-2 rounded-xl hover:from-blue-700 hover:to-green-700 transition duration-300"
+            >
+              {isRegister ? "Cadastrar" : "Entrar"}
+            </button>
+
+            <div className="flex justify-between items-center text-sm mt-2">
+              <button onClick={() => {
+                setIsRegister(!isRegister);
+                setError("");
+              }} className="text-blue-600 hover:underline">
+                {isRegister ? "Já tem conta? Entrar" : "Não tem conta? Cadastrar-se"}
+              </button>
+              <button onClick={() => {
+                setShowAuth(false);
+                setError("");
+              }} className="text-gray-500 hover:underline">
+                Fechar
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Cards principais */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
+        <Card className="rounded-2xl shadow-lg border border-blue-200 bg-white hover:shadow-xl transition duration-300 ease-in-out">
+          <CardContent className="p-6 space-y-4">
+            <h2 className="text-2xl font-semibold text-blue-600">
+              {userName ? `Aqui estão alguns Personais para você, ${userName}!` : "Encontre um Personal Trainer"}
+            </h2>
+            {userName ? (
+              <div className="space-y-4">
+                {(filteredTrainers.length > 0 ? filteredTrainers : trainers).map((trainer, index) => (
+                  <div key={index} className="border rounded-xl p-4 shadow hover:shadow-md transition">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="text-lg font-semibold text-blue-700">{trainer.nome}</h3>
+                        <p className="text-sm text-gray-600">{trainer.esporte} • {trainer.regiao}</p>
+                      </div>
+                      <div className="text-yellow-500 font-bold">{trainer.estrelas} ⭐</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <Button
+                onClick={() => setShowAuth(true)}
+                className="bg-gradient-to-r from-blue-600 to-green-600 text-white hover:from-blue-700 hover:to-green-700 transition duration-300"
+              >
+                Procurar Trainers
+              </Button>
+            )}
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl shadow-xl border border-blue-200 bg-white">
+        <Card className="rounded-2xl shadow-lg border border-blue-200 bg-white hover:shadow-xl transition duration-300 ease-in-out">
           <CardContent className="p-6">
             <h2 className="text-2xl font-semibold text-blue-600 mb-4">Agende seu Treino</h2>
-            <p className="text-gray-700 mb-4">Selecione uma data para agendar uma sessão personalizada.</p>
-            <Calendar mode="single" selected={date} onSelect={setDate} className="rounded-md border border-blue-300" />
+            <p className="text-gray-700 mb-4">Escolha uma data e agende sua sessão personalizada.</p>
+            <Button
+              onClick={() => setShowCalendar(!showCalendar)}
+              className="bg-gradient-to-r from-blue-600 to-green-600 text-white hover:from-blue-700 hover:to-green-700 transition duration-300 mb-4"
+            >
+              Agendar horário com Personal Trainer
+            </Button>
+            <AnimatePresence>
+              {showCalendar && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    className="rounded-md border border-blue-300"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </CardContent>
         </Card>
       </section>
